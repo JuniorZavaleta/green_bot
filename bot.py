@@ -5,6 +5,7 @@ import logging
 from flask import Flask, request
 import telegram
 from telegram.ext import Updater, CommandHandler
+from messenger_handler import MessengerHandler
 from emoji import emojize
 
 logging.basicConfig(level=logging.DEBUG,
@@ -48,6 +49,19 @@ def set_webhook():
 @app.route('/')
 def index():
     return 'Flask running'
+
+@app.route('/messenger', methods=['GET'])
+def handle_verification():
+    return request.args['hub.challenge']
+
+@app.route('/messenger', methods=['POST'])
+def handle_messenger_request():
+    data = request.json
+    messaging = data['entry'][0]['messaging'][0]
+    chat_id = messaging['sender']['id']
+    handler = MessengerHandler(chat_id)
+
+    return handler.handle_bot(messaging)
 
 if __name__ == '__main__':
     app.run(debug=True)
