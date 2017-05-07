@@ -23,7 +23,6 @@ updater = Updater(TELEGRAM_TOKEN)
 
 # Commands
 def start(bot, update):
-    print("start")
     update.message.reply_text(u'Hola!, Soy Hojita {}'.format(
         emojize(':grinning_face:', use_aliases=True)))
 
@@ -36,7 +35,6 @@ def handle_telegram_request():
     if request.method == "POST":
         # retrieve the message in JSON and then transform it to Telegram object
         update = telegram.Update.de_json(request.get_json(force=True), bot)
-        print(update)
         updater.dispatcher.process_update(update)
     return 'ok'
 
