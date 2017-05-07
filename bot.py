@@ -31,8 +31,8 @@ def start(bot, update):
 updater.dispatcher.add_handler(CommandHandler('start', start))
 
 # Routes
-@app.route('/handle_telegram', methods=['POST'])
-def handle_webhook():
+@app.route('/telegram', methods=['POST'])
+def handle_telegram_request():
     if request.method == "POST":
         # retrieve the message in JSON and then transform it to Telegram object
         update = telegram.Update.de_json(request.get_json(force=True), bot)
@@ -42,7 +42,7 @@ def handle_webhook():
 
 @app.route('/set', methods=['GET', 'POST'])
 def set_webhook():
-    if bot.setWebhook(SITE_URL + '/handle_telegram'):
+    if bot.setWebhook(SITE_URL + '/telegram'):
         return "webhook setup ok"
     else:
         return "webhook setup failed"
