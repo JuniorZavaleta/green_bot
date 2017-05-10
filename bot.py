@@ -15,7 +15,7 @@ logger = logging.getLogger()
 
 #Environment
 TELEGRAM_TOKEN = "TELEGRAM_TOKEN_BOT"
-SITE_URL = "NGROL_HTTPS"
+SITE_URL = "NGROK_HTTPS"
 
 global bot, updater
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
