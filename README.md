@@ -50,7 +50,9 @@ https://ngrok.com/download
 
 Execute ngrok
 
+```
 ./path/to/ngrok http 5000
+```
 
 Flask use port 5000 by default
 
@@ -58,7 +60,15 @@ Copy the https url (i.e. https://abc123.ngrok.io)
 
 On bot.py
 Set your telegram token on TELEGRAM_TOKEN
+Set the access token for messenger bot on PAGE_ACCESS_TOKEN
+Configure your messenger webhook on facebook developers
 And your https url of ngrok on SITE_URL
+
+Run the server
+
+```
+python bot.py
+```
 
 Enter to "https://your_site_url/set" for set the telegram webhook
 
