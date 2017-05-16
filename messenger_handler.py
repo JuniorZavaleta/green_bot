@@ -3,7 +3,7 @@
 
 import requests
 from messenger import Messenger
-from models import ContaminationType
+from models import ContaminationType, Citizen
 
 class MessengerHandler(object):
     chat_id = None
@@ -38,6 +38,11 @@ class MessengerHandler(object):
 
     def start(self):
         user = Messenger.get_user_data(self.chat_id)
+
+        # Search on pivot if messenger's chat id already exists
+        # If not create the citizen
+        Citizen.createFromMessenger(self.chat_id, user)
+        # Else change the welcome message
 
         Messenger.send_text(self.chat_id,
             u'Hola {}, Soy Hojita :D y te ayudaré a reportar casos de contaminación de forma anónima ;)'.format(
