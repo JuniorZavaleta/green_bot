@@ -37,16 +37,22 @@ class MessengerHandler(object):
             return 'ok'
 
     def start(self):
-        user = Messenger.get_user_data(self.chat_id)
+        # Check if messenger's chat id already exists
+        citizen = Citizen.where_has('channels',
+            lambda ch: ch.where('account_id', self.chat_id)).first()
 
-        # Search on pivot if messenger's chat id already exists
         # If not create the citizen
-        Citizen.createFromMessenger(self.chat_id, user)
-        # Else change the welcome message
+        if citizen is None:
+            user = Messenger.get_user_data(self.chat_id)
 
-        Messenger.send_text(self.chat_id,
-            u'Hola {}, Soy Hojita :D y te ayudaré a reportar casos de contaminación de forma anónima ;)'.format(
-            user['first_name']))
+            Citizen.createForMessenger(self.chat_id, user)
+            message = u'Hola {}, Soy Hojita :D y te ayudaré a reportar casos de contaminación de forma anónima ;)'.format(
+                user['first_name'])
+        # Else change the welcome message
+        else:
+            message = u'Hola {} :D'.format(citizen.name)
+
+        Messenger.send_text(self.chat_id, message)
 
         self.ask_for_new_case()
 
@@ -66,7 +72,7 @@ class MessengerHandler(object):
         for contamination_type in ContaminationType.all():
             quick_replies.append({
                 'content_type': 'text',
-                'title': contamination_type['name'],
-                'payload': 'add_type {}'.format(contamination_type['id'])})
+                'title': contamination_type.description,
+                'payload': 'add_type {}'.format(contamination_type.id)})
 
         Messenger.send_text(self.chat_id, text, quick_replies)

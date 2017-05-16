@@ -15,22 +15,29 @@ config = {
 db = DatabaseManager(config)
 Model.set_connection_resolver(db)
 
+MESSENGER = 1
+
 class ContaminationType(Model):
     pass
 
 class Citizen(Model):
     __guarded__ = []
 
-    @belongs_to_many
+    @belongs_to_many('citizen_communication')
     def channels(self):
         return CommunicationType
 
-    def createFromMessenger(self, chat_id, user_data):
+    @staticmethod
+    def createForMessenger(chat_id, user_data):
         # Create the citizen and
-        # assign messenger as communication channel
+        citizen = Citizen.create(name=user_data['first_name'])
+
+        # Assign Messenger as communication channel
+        citizen.channels().attach(CommunicationType.find(MESSENGER), {
+            'account_id': chat_id})
 
 class CommunicationType(Model):
 
-    @belongs_to_many
+    @belongs_to_many('citizen_communication')
     def citizens(self):
         return Citizen
