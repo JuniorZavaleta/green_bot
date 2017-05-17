@@ -47,5 +47,23 @@ class Complaint(Model):
 
     __timestamps__ = False
 
+    @has_many
+    def images(self):
+        return ComplaintImage
+
+    @scope
+    def incomplete(self, query):
+        return query.where('complaint_state_id', ComplaintState.INCOMPLETE)\
+                    .order_by('created_at', 'DESC')
+
 class ComplaintState(Model):
     INCOMPLETE = 1
+
+class ComplaintImage(Model):
+    __fillable__ = ['img']
+
+    __table__ = 'img_complaint'
+
+    @belongs_to
+    def complaint(self):
+        return Complaint

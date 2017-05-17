@@ -3,7 +3,7 @@
 
 import requests
 from messenger import Messenger
-from models import ContaminationType, Citizen, Complaint, ComplaintState, CommunicationType
+from models import *
 
 class MessengerHandler(object):
     chat_id = None
@@ -37,7 +37,28 @@ class MessengerHandler(object):
         elif 'text' in message:
             if message['text'] == 'reportar':
                 self.ask_for_new_case()
+            elif message['text'] == 'start':
+                self.start()
             return 'ok'
+        elif 'attachments' in message:
+            # Check if exists a incomplete complaint
+            incomplete_complaint = Complaint.incomplete().first()
+
+            if incomplete_complaint is not None:
+                images = []
+                for attachment in message['attachments']:
+                    if attachment['type'] == 'image':
+                        images.append(ComplaintImage(img=attachment['url']))
+
+                incomplete_complaint.images().save_many(images)
+
+                message = u'Sigamos! Ahora necesito que envies la localización del lugar donde tomaste la foto. Si estas ahi selecciona ubicación actual :D'
+                ask_location = [{
+                    "content_type": "location",
+                    "payload": "ask_location {}".format(incomplete_complaint.id)
+                }]
+
+                Messenger.send_text(self.chat_id, message, ask_location)
 
     def start(self):
         # Check if messenger's chat id already exists
