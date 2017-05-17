@@ -15,8 +15,6 @@ config = {
 db = DatabaseManager(config)
 Model.set_connection_resolver(db)
 
-MESSENGER = 1
-
 class ContaminationType(Model):
     pass
 
@@ -33,11 +31,21 @@ class Citizen(Model):
         citizen = Citizen.create(name=user_data['first_name'])
 
         # Assign Messenger as communication channel
-        citizen.channels().attach(CommunicationType.find(MESSENGER), {
-            'account_id': chat_id})
+        citizen.channels().attach(
+            CommunicationType.find(CommunicationType.MESSENGER), {
+                'account_id': chat_id})
 
 class CommunicationType(Model):
+    MESSENGER = 1
 
     @belongs_to_many('citizen_communication')
     def citizens(self):
         return Citizen
+
+class Complaint(Model):
+    __guarded__ = []
+
+    __timestamps__ = False
+
+class ComplaintState(Model):
+    INCOMPLETE = 1

@@ -3,7 +3,7 @@
 
 import requests
 from messenger import Messenger
-from models import ContaminationType, Citizen
+from models import ContaminationType, Citizen, Complaint, ComplaintState, CommunicationType
 
 class MessengerHandler(object):
     chat_id = None
@@ -27,9 +27,12 @@ class MessengerHandler(object):
     def handle_message(self, message):
         if 'quick_reply' in message:
             payload = message['quick_reply']['payload']
+            args = payload.split()
 
-            if payload == 'new_case':
-                self.new_case()
+            if args[0] == 'ask_for_cont_type':
+                self.ask_for_cont_type()
+            elif args[0] == 'new_case':
+                self.new_case(args[1])
 
         elif 'text' in message:
             if message['text'] == 'reportar':
@@ -58,14 +61,14 @@ class MessengerHandler(object):
 
     def ask_for_new_case(self):
         quick_replies = [
-            {'content_type': 'text', 'title': 'Si :D', 'payload': 'new_case'},
+            {'content_type': 'text', 'title': 'Si :D', 'payload': 'ask_for_cont_type'},
             {'content_type': 'text', 'title': 'No :(', 'payload': 'nothing'}
         ]
 
         Messenger.send_text(self.chat_id,
             u'¿Deseas reportar un caso de contaminación? :o', quick_replies)
 
-    def new_case(self):
+    def ask_for_cont_type(self):
         quick_replies = []
         text = 'Genial! Primero necesito que selecciones el tipo de contaminación que más se parece a lo que deseas reportar :)'
 
@@ -73,6 +76,20 @@ class MessengerHandler(object):
             quick_replies.append({
                 'content_type': 'text',
                 'title': contamination_type.description,
-                'payload': 'add_type {}'.format(contamination_type.id)})
+                'payload': 'new_case {}'.format(contamination_type.id)})
 
         Messenger.send_text(self.chat_id, text, quick_replies)
+
+    def new_case(self, cont_type):
+        citizen = Citizen.where_has('channels',
+            lambda ch: ch.where('account_id', self.chat_id)).first()
+
+        complaint = Complaint()
+        complaint.citizen_id = citizen.id
+        complaint.type_contamination_id = cont_type
+        complaint.type_communication_id = CommunicationType.MESSENGER
+        complaint.complaint_state_id = ComplaintState.INCOMPLETE
+        complaint.save()
+
+        Messenger.send_text(self.chat_id,
+            u'¡Excelente! Ahora necesito una foto sobre el caso de contaminación, si tienes más mejor :D pero solo puedo guardar hasta 3 :)')
