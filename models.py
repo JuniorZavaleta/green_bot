@@ -1,5 +1,5 @@
 from orator import DatabaseManager, Model
-from orator.orm import belongs_to_many
+from orator.orm import belongs_to_many, has_many, scope, belongs_to
 
 config = {
     'mysql': {
@@ -35,6 +35,10 @@ class Citizen(Model):
             CommunicationType.find(CommunicationType.MESSENGER), {
                 'account_id': chat_id})
 
+    @has_many
+    def complaints(self):
+        return Complaint
+
 class CommunicationType(Model):
     MESSENGER = 1
 
@@ -56,8 +60,13 @@ class Complaint(Model):
         return query.where('complaint_state_id', ComplaintState.INCOMPLETE)\
                     .order_by('created_at', 'DESC')
 
+    @belongs_to
+    def citizen(self):
+        return Citizen
+
 class ComplaintState(Model):
     INCOMPLETE = 1
+    COMPLETE = 2
 
 class ComplaintImage(Model):
     __fillable__ = ['img']
