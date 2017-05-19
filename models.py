@@ -66,3 +66,9 @@ class ComplaintImage(Model):
     @belongs_to
     def complaint(self):
         return Complaint
+
+class District(Model):
+    pass
+
+class Authority(Model):
+    pass

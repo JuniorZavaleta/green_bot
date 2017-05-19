@@ -4,6 +4,7 @@
 import requests
 from datetime import datetime
 from messenger import Messenger
+from gmaps import GMaps, LimaException
 from models import *
 
 class MessengerHandler(object):
@@ -146,22 +147,33 @@ class MessengerHandler(object):
     def add_location(self, incomplete_complaint, coordinates):
         incomplete_complaint.latitude = coordinates['lat']
         incomplete_complaint.longitude = coordinates['long']
-        # To-Do
-        # Get district name from google maps
-        incomplete_complaint.save()
 
-        message = u'¡Ya falta poco! Me gustaría saber más sobre el caso :) Me ayudarías mucho si agregas un comentario. ¿Deseas agregar un comentario al caso?'
-        quick_replies = [
-            {
-                'content_type': 'text', 'title': 'Si :D',
-                'payload': 'wait_comment'},
-            {
-                'content_type': 'text', 'title': 'No, Gracias',
-                'payload': 'report {}'.format(incomplete_complaint.id)
-            }
-        ]
+        try:
+            district_name = GMaps.get_district_name(coordinates['lat'], coordinates['long'])
+            district = District.where('name', district_name).first()
 
-        Messenger.send_text(self.chat_id, message, quick_replies)
+            if district is not None:
+                authority = Authority.where('district_id', district.id).first()
+                incomplete_complaint.authority_id = authority.id
+                incomplete_complaint.save()
+
+                message = u'¡Ya falta poco! Me gustaría saber más sobre el caso :) Me ayudarías mucho si agregas un comentario. ¿Deseas agregar un comentario al caso?'
+                quick_replies = [
+                    {
+                        'content_type': 'text', 'title': 'Si :D',
+                        'payload': 'wait_comment'},
+                    {
+                        'content_type': 'text', 'title': 'No, Gracias',
+                        'payload': 'report {}'.format(incomplete_complaint.id)
+                    }
+                ]
+
+                Messenger.send_text(self.chat_id, message, quick_replies)
+            else:
+                message = u'No hay autoridad para el distrito localizado :\'('
+                Messenger.send_text(self.chat_id, message)
+        except LimaException as e:
+            Messenger.send_text(self.chat_id, e.message)
 
     def wait_comment(self):
         message = u'¡Excelente! Por favor escribe tu comentario en un solo mensaje ;). Si cambiaste de opinión y prefieres no comentar :(, mandame un like :\'(.'
