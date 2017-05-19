@@ -31,6 +31,8 @@ class MessengerHandler(object):
 
             if args[0] == 'ask_for_cont_type':
                 self.ask_for_cont_type()
+            elif args[0] == 'nothing':
+                self.nothing()
             elif args[0] == 'new_case':
                 self.new_case(args[1])
             elif args[0] == 'report':
@@ -88,13 +90,13 @@ class MessengerHandler(object):
             {'content_type': 'text', 'title': 'Si :D', 'payload': 'ask_for_cont_type'},
             {'content_type': 'text', 'title': 'No :(', 'payload': 'nothing'}
         ]
+        message = u'¿Deseas reportar un caso de contaminación? :o'
 
-        Messenger.send_text(self.chat_id,
-            u'¿Deseas reportar un caso de contaminación? :o', quick_replies)
+        Messenger.send_text(self.chat_id, message, quick_replies)
 
     def ask_for_cont_type(self):
         quick_replies = []
-        text = 'Genial! Primero necesito que selecciones el tipo de contaminación que más se parece a lo que deseas reportar :)'
+        message = u'¡Genial! Primero necesito que selecciones el tipo de contaminación que más se parece a lo que deseas reportar :)'
 
         for contamination_type in ContaminationType.all():
             quick_replies.append({
@@ -102,7 +104,11 @@ class MessengerHandler(object):
                 'title': contamination_type.description,
                 'payload': 'new_case {}'.format(contamination_type.id)})
 
-        Messenger.send_text(self.chat_id, text, quick_replies)
+        Messenger.send_text(self.chat_id, message, quick_replies)
+
+    def nothing(self):
+        message = u'Bueno :(, pero no te olvides de avisarme cuándo veas un caso de contaminación :D'
+        Messenger.send_text(self.chat_id, message)
 
     def new_case(self, cont_type):
         citizen = Citizen.where_has('channels',
