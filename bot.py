@@ -7,20 +7,17 @@ import telegram
 from telegram.ext import Updater, CommandHandler
 from messenger_handler import MessengerHandler
 from emoji import emojize
+import config
 
 logging.basicConfig(level=logging.DEBUG,
                      format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger()
 
-#Environment
-TELEGRAM_TOKEN = "TELEGRAM_TOKEN_BOT"
-SITE_URL = "NGROK_HTTPS"
-
 global bot, updater
-bot = telegram.Bot(token=TELEGRAM_TOKEN)
+bot = telegram.Bot(token=config.TELEGRAM_TOKEN)
 app = Flask(__name__)
-updater = Updater(TELEGRAM_TOKEN)
+updater = Updater(config.TELEGRAM_TOKEN)
 
 # Commands
 def start(bot, update):
@@ -41,7 +38,7 @@ def handle_telegram_request():
 
 @app.route('/set', methods=['GET', 'POST'])
 def set_webhook():
-    if bot.setWebhook(SITE_URL + '/telegram'):
+    if bot.setWebhook(config.SITE_URL + '/telegram'):
         return "webhook setup ok"
     else:
         return "webhook setup failed"

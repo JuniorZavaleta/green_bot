@@ -1,9 +1,9 @@
 ##Filename: messenger.py
-
 import requests
+import config
 
 class Messenger(object):
-    token = 'PAGE_ACCESS_TOKEN'
+    token = config.PAGE_TOKEN
     graph = 'https://graph.facebook.com/v2.6'
 
     @staticmethod
