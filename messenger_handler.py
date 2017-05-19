@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+from datetime import datetime
 from messenger import Messenger
 from models import *
 
@@ -35,14 +36,18 @@ class MessengerHandler(object):
                 self.nothing()
             elif args[0] == 'new_case':
                 self.new_case(args[1])
+            elif args[0] == 'wait_comment':
+                self.wait_comment()
             elif args[0] == 'report':
-                self.report(args[1])
+                self.report(Complaint.find(args[1]))
 
         elif 'text' in message:
             if message['text'] == 'reportar':
                 self.ask_for_new_case()
             elif message['text'] == 'start':
                 self.start()
+            else:
+                self.add_comment(message['text'])
 
         elif 'attachments' in message:
             # Check if exists a incomplete complaint
@@ -145,11 +150,11 @@ class MessengerHandler(object):
         # Get district name from google maps
         incomplete_complaint.save()
 
-        message = u'¿Deseas agregar algún comentario?'
+        message = u'¡Ya falta poco! Me gustaría saber más sobre el caso :) Me ayudarías mucho si agregas un comentario. ¿Deseas agregar un comentario al caso?'
         quick_replies = [
             {
                 'content_type': 'text', 'title': 'Si :D',
-                'payload': 'ask_for_comment'},
+                'payload': 'wait_comment'},
             {
                 'content_type': 'text', 'title': 'No, Gracias',
                 'payload': 'report {}'.format(incomplete_complaint.id)
@@ -158,10 +163,28 @@ class MessengerHandler(object):
 
         Messenger.send_text(self.chat_id, message, quick_replies)
 
-    def report(self, complaint_id):
-        incomplete_complaint = Complaint.find(complaint_id)
-        incomplete_complaint.complaint_state_id = ComplaintState.COMPLETE
-        incomplete_complaint.save()
+    def wait_comment(self):
+        message = u'¡Excelente! Por favor escribe tu comentario en un solo mensaje ;). Si cambiaste de opinión y prefieres no comentar :(, mandame un like :\'(.'
+        Messenger.send_text(self.chat_id, message)
+
+    def add_comment(self, message):
+        citizen = Citizen.where_has('channels',
+            lambda ch: ch.where('account_id', self.chat_id)).first()
+        complaint = citizen.complaints().incomplete().first()
+
+        if complaint is not None:
+            if complaint.latitude is not None and complaint.longitude is not None:
+                complaint.commentary = message
+                complaint.save()
+
+                self.report(complaint)
+
+    def report(self, complaint):
+        complaint.complaint_state_id = ComplaintState.COMPLETE
+        complaint.created_at = datetime.now()
+        complaint.updated_at = datetime.now()
+        complaint.date_status_updated = datetime.now()
+        complaint.save()
 
         message = u'¡Gracias por tu ayuda! Acabó de registrar tu caso de contaminación :D'
         Messenger.send_text(self.chat_id, message)
@@ -172,7 +195,7 @@ class MessengerHandler(object):
         if citizen.complaints.count() == 1:
             message = u'Te enviaré actualizaciones sobre las actividades que realice la municipalidad :) asi que por favor no borres este chat :D'
             Messenger.send_text(self.chat_id, message)
-            message = u'Para futuros reportes de contaminación puedes usar el menú o escribe "reportar" :3'
+            message = u'Para futuros reportes de contaminación puedes usar el menú o escribe "reportar" ;)'
             Messenger.send_text(self.chat_id, message)
         else:
             message = u'Recuerda que te enviaré actualizaciones sobre tu caso :) asi que por favor no borres este chat :D'
