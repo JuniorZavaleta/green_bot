@@ -74,7 +74,9 @@ class MessengerHandler(object):
     def start(self):
         # Check if messenger's chat id already exists
         citizen = Citizen.where_has('channels',
-            lambda ch: ch.where('account_id', self.chat_id)).first()
+            lambda ch: ch.where('account_id', self.chat_id)
+                         .where('communication_type_id', CommunicationType.MESSENGER)
+        ).first()
 
         # If not create the citizen
         if citizen is None:

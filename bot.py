@@ -1,12 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import logging
 from flask import Flask, request
 import telegram
-from telegram.ext import Updater, CommandHandler
 from messenger_handler import MessengerHandler
-from emoji import emojize
+from telegram_handler import bot, updater
 import config
 
 logging.basicConfig(level=logging.DEBUG,
@@ -14,18 +11,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 logger = logging.getLogger()
 
-global bot, updater
-bot = telegram.Bot(token=config.TELEGRAM_TOKEN)
 app = Flask(__name__)
-updater = Updater(config.TELEGRAM_TOKEN)
-
-# Commands
-def start(bot, update):
-    update.message.reply_text(u'Hola!, Soy Hojita {}'.format(
-        emojize(':grinning_face:', use_aliases=True)))
-
-# Handlers
-updater.dispatcher.add_handler(CommandHandler('start', start))
 
 # Routes
 @app.route('/telegram', methods=['POST'])

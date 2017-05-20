@@ -25,12 +25,23 @@ class Citizen(Model):
             CommunicationType.find(CommunicationType.MESSENGER), {
                 'account_id': chat_id})
 
+    @staticmethod
+    def createForTelegram(chat_id, name):
+        # Create the citizen and
+        citizen = Citizen.create(name=name)
+
+        # Assign Telegram as communication channel
+        citizen.channels().attach(
+            CommunicationType.find(CommunicationType.TELEGRAM), {
+                'account_id': chat_id})
+
     @has_many
     def complaints(self):
         return Complaint
 
 class CommunicationType(Model):
     MESSENGER = 1
+    TELEGRAM = 2
 
     @belongs_to_many('citizen_communication')
     def citizens(self):
