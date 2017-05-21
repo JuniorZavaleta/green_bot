@@ -120,7 +120,9 @@ class MessengerHandler(object):
 
     def new_case(self, cont_type):
         citizen = Citizen.where_has('channels',
-            lambda ch: ch.where('account_id', self.chat_id)).first()
+            lambda ch: ch.where('account_id', self.chat_id)
+                         .where('communication_type_id', CommunicationType.MESSENGER)
+        ).first()
 
         complaint = Complaint()
         complaint.citizen_id = citizen.id

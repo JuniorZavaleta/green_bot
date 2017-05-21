@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import telegram
-from telegram.ext import Updater, CommandHandler, ConversationHandler, CallbackQueryHandler
+from telegram.ext import (Updater, CommandHandler, ConversationHandler,
+                          CallbackQueryHandler, MessageHandler, Filters)
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from emoji import emojize
 from models import *
@@ -63,12 +64,44 @@ def ask_for_cont_type(bot, update):
 
 def new_case(bot, update):
     query = update.callback_query
+    chat_id = query.message.chat.id
     data = query.data.split()
 
-    cont_type = ContaminationType.find(data[1])
-    message = u'{}'.format(cont_type.description)
+    citizen = Citizen.where_has('channels',
+        lambda ch: ch.where('account_id', chat_id)
+                     .where('communication_type_id', CommunicationType.TELEGRAM)
+    ).first()
 
+    complaint = Complaint()
+    complaint.citizen_id = citizen.id
+    complaint.type_contamination_id = data[1]
+    complaint.type_communication_id = CommunicationType.MESSENGER
+    complaint.complaint_state_id = ComplaintState.INCOMPLETE
+    complaint.save()
+
+    message = u'¡Excelente! Ahora necesito una foto sobre el caso de contaminación, si tienes más mejor :D pero solo puedo guardar hasta 3 :)'
     query.message.reply_text(message)
+
+    return PHOTO
+
+def add_images(bot, update):
+    chat_id = update.message.chat.id
+    file_id = update.message.photo[-1].file_id
+    photo_file = bot.get_file(file_id)
+    file_path = 'telegram/images/{}.jpg'.format(file_id)
+    photo_file.download(file_path)
+
+    citizen = Citizen.where_has('channels',
+        lambda ch: ch.where('account_id', chat_id)).first()
+    incomplete_complaint = citizen.complaints().incomplete().first()
+
+    images = []
+    images.append(ComplaintImage(img=file_path))
+
+    incomplete_complaint.images().save_many(images)
+
+    message = u'¡Sigamos! Ahora necesito que envies la localización del lugar donde tomaste la foto. Si estas ahi selecciona ubicación actual :D'
+    update.message.reply_text(message)
 
     return ConversationHandler.END
 
@@ -83,7 +116,7 @@ updater.dispatcher.add_handler(ConversationHandler(
     entry_points=[CallbackQueryHandler(ask_for_cont_type, pattern='ask_for_cont_type')],
     states={
         NEW_CASE: [CallbackQueryHandler(new_case, pattern='new_case [0-9]')],
-        PHOTO: [CallbackQueryHandler(new_case, pattern='new_case [0-9]')]
+        PHOTO: [MessageHandler(Filters.photo, add_images)]
     },
     fallbacks=[CommandHandler('cancel', cancel)]
 ))
