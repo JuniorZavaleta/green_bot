@@ -59,7 +59,7 @@ class Complaint(Model):
     @scope
     def incomplete(self, query):
         return query.where('complaint_state_id', ComplaintState.INCOMPLETE)\
-                    .order_by('created_at', 'DESC')
+                    .order_by('id', 'DESC')
 
     @belongs_to
     def citizen(self):
