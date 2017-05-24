@@ -59,6 +59,8 @@ class MessengerHandler(object):
             if incomplete_complaint is not None:
                 if message['attachments'][0]['type'] == 'location':
                     self.add_location(incomplete_complaint, message['attachments'][0]['payload']['coordinates'])
+                elif self.is_like(message):
+                    self.report(incomplete_complaint)
                 elif message['attachments'][0]['type'] == 'image':
                     self.add_images(incomplete_complaint, message['attachments'])
                 else:
@@ -66,10 +68,15 @@ class MessengerHandler(object):
 
                     Messenger.send_text(self.chat_id, message)
             else:
-                if message['attachments'][0]['type'] == 'image':
+                if self.is_like(message):
+                    Messenger.send_text(self.chat_id, ';*')
+                elif message['attachments'][0]['type'] == 'image':
                     message = u'Veo que has subido una imagen, disculpa pero primero debes decirme si quieres reportar un caso de contaminación.'
                     Messenger.send_text(self.chat_id, message)
                     self.ask_for_new_case()
+
+    def is_like(self, message):
+        return message['sticker_id'] in [369239263222822, 369239343222814, 369239383222810]
 
     def start(self):
         # Check if messenger's chat id already exists
@@ -186,14 +193,16 @@ class MessengerHandler(object):
     def add_comment(self, message):
         citizen = Citizen.where_has('channels',
             lambda ch: ch.where('account_id', self.chat_id)).first()
-        complaint = citizen.complaints().incomplete().first()
 
-        if complaint is not None:
-            if complaint.latitude is not None and complaint.longitude is not None:
-                complaint.commentary = message
-                complaint.save()
+        if citizen is not None:
+            complaint = citizen.complaints().incomplete().first()
 
-                self.report(complaint)
+            if complaint is not None:
+                if complaint.latitude is not None and complaint.longitude is not None:
+                    complaint.commentary = message
+                    complaint.save()
+
+                    self.report(complaint)
 
     def report(self, complaint):
         complaint.complaint_state_id = ComplaintState.COMPLETE
