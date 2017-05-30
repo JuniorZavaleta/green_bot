@@ -76,7 +76,9 @@ class MessengerHandler(object):
                     self.ask_for_new_case()
 
     def is_like(self, message):
-        return message['sticker_id'] in [369239263222822, 369239343222814, 369239383222810]
+        if 'sticker_id' in message:
+            return message['sticker_id'] in [369239263222822, 369239343222814, 369239383222810]
+        return False
 
     def start(self):
         # Check if messenger's chat id already exists
