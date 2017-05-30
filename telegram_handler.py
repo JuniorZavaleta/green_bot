@@ -77,7 +77,7 @@ def new_case(bot, update):
     complaint = Complaint()
     complaint.citizen_id = citizen.id
     complaint.type_contamination_id = data[1]
-    complaint.type_communication_id = CommunicationType.MESSENGER
+    complaint.type_communication_id = CommunicationType.TELEGRAM
     complaint.complaint_state_id = ComplaintState.INCOMPLETE
     complaint.save()
 
@@ -90,7 +90,7 @@ def add_image(bot, update):
     chat_id = update.message.chat.id
     file_id = update.message.photo[-1].file_id
     photo_file = bot.get_file(file_id)
-    file_path = 'telegram/images/{}.jpg'.format(file_id)
+    file_path = 'images/{}.jpg'.format(file_id)
     photo_file.download(file_path)
 
     citizen = Citizen.where_has('channels',

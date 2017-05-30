@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 import telegram
 from messenger_handler import MessengerHandler
 from telegram_handler import bot, updater
@@ -45,6 +45,10 @@ def handle_messenger_request():
     handler = MessengerHandler(chat_id)
 
     return handler.handle_bot(messaging)
+
+@app.route('/<path:filename>')
+def send_telegram_image(filename):
+    return send_from_directory('static', filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
