@@ -90,7 +90,7 @@ def add_image(bot, update):
     chat_id = update.message.chat.id
     file_id = update.message.photo[-1].file_id
     photo_file = bot.get_file(file_id)
-    file_path = 'images/{}.jpg'.format(file_id)
+    file_path = 'static/telegram_images/{}.jpg'.format(file_id)
     photo_file.download(file_path)
 
     citizen = Citizen.where_has('channels',
