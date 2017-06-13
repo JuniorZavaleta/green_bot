@@ -137,7 +137,7 @@ class MessengerHandler(object):
         complaint.citizen_id = citizen.id
         complaint.type_contamination_id = cont_type
         complaint.type_communication_id = CommunicationType.MESSENGER
-        complaint.complaint_state_id = ComplaintState.INCOMPLETE
+        complaint.complaint_status_id = ComplaintState.INCOMPLETE
         complaint.save()
 
         message = u'¡Excelente! Ahora necesito una foto sobre el caso de contaminación, si tienes más mejor :D pero solo puedo guardar hasta 3 :)'
@@ -166,8 +166,7 @@ class MessengerHandler(object):
             district = District.where('name', district_name).first()
 
             if district is not None:
-                authority = Authority.where('district_id', district.id).first()
-                incomplete_complaint.authority_id = authority.id
+                incomplete_complaint.district_id = district.id
                 incomplete_complaint.save()
 
                 message = u'¡Ya falta poco! Me gustaría saber más sobre el caso :) Me ayudarías mucho si agregas un comentario. ¿Deseas agregar un comentario al caso?'
@@ -207,7 +206,7 @@ class MessengerHandler(object):
                     self.report(complaint)
 
     def report(self, complaint):
-        complaint.complaint_state_id = ComplaintState.COMPLETE
+        complaint.complaint_status_id = ComplaintState.COMPLETE
         complaint.created_at = datetime.now()
         complaint.updated_at = datetime.now()
         complaint.date_status_updated = datetime.now()

@@ -58,7 +58,7 @@ class Complaint(Model):
 
     @scope
     def incomplete(self, query):
-        return query.where('complaint_state_id', ComplaintState.INCOMPLETE)\
+        return query.where('complaint_status_id', ComplaintState.INCOMPLETE)\
                     .order_by('id', 'DESC')
 
     @belongs_to
@@ -66,6 +66,8 @@ class Complaint(Model):
         return Citizen
 
 class ComplaintState(Model):
+    __table__ = 'complaint_status'
+
     INCOMPLETE = 1
     COMPLETE = 2
 
