@@ -78,7 +78,7 @@ def new_case(bot, update):
     complaint.citizen_id = citizen.id
     complaint.type_contamination_id = data[1]
     complaint.type_communication_id = CommunicationType.TELEGRAM
-    complaint.complaint_state_id = ComplaintState.INCOMPLETE
+    complaint.complaint_status_id = ComplaintState.INCOMPLETE
     complaint.save()
 
     message = u'¡Excelente! Ahora necesito una foto sobre el caso de contaminación, si tienes más mejor :D pero solo puedo guardar hasta 3 :). Por favor, envia de uno en uno.'
@@ -154,8 +154,7 @@ def add_location(bot, update):
         district = District.where('name', district_name).first()
 
         if district is not None:
-            authority = Authority.where('district_id', district.id).first()
-            complaint.authority_id = authority.id
+            complaint.district_id = district.id
             complaint.save()
 
             message = u'¡Ya falta poco! Me gustaría saber más sobre el caso :) Me ayudarías mucho si agregas un comentario. ¿Deseas agregar un comentario al caso?'
@@ -198,7 +197,7 @@ def make_report(complaint, sender):
                      .where('communication_type_id', CommunicationType.TELEGRAM)
     ).first()
 
-    complaint.complaint_state_id = ComplaintState.COMPLETE
+    complaint.complaint_status_id = ComplaintState.COMPLETE
     complaint.created_at = datetime.now()
     complaint.updated_at = datetime.now()
     complaint.date_status_updated = datetime.now()
