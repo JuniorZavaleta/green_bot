@@ -98,7 +98,7 @@ def add_image(bot, update):
                      .where('communication_type_id', CommunicationType.TELEGRAM)
     ).first()
     incomplete_complaint = citizen.complaints().incomplete().first()
-    incomplete_complaint.images().save(ComplaintImage(img=file_path))
+    incomplete_complaint.images().save(ComplaintImage(img=config.SITE_URL+'/'+file_path))
 
 def add_image_1(bot, update):
     add_image(bot, update)
